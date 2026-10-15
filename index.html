@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/jpeg" href="/freshroute-logo.jpg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="FreshRoute Overland Park - Intelligent grocery delivery route optimization and road-network TSP solver for Overland Park, Kansas." />
+    <title>FreshRoute OP • Overland Park Grocery Delivery Route Optimizer</title>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <!-- App Header -->
+      <header class="app-header">
+        <div class="brand-section">
+          <img src="/freshroute-logo.jpg" alt="FreshRoute Overland Park Logo" class="brand-logo-img" />
+          <div class="brand-text-wrap">
+            <h1 class="brand-title">FreshRoute <span>OP</span></h1>
+            <div class="brand-location-badge">
+              <span class="live-dot" aria-hidden="true"></span>
+              Overland Park, Kansas • Grocery Delivery Logistics
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Controls: Multi-Role Switcher -->
+        <div class="header-center-controls">
+          <div class="role-nav-group" role="tablist" aria-label="FreshRoute Ecosystem Roles">
+            <button id="navRoleCustomer" class="role-nav-btn active" role="tab" aria-selected="true" title="Customer Grocery Storefront">
+              <span aria-hidden="true">🛒</span> Customer Shop
+            </button>
+            <button id="navRoleMerchant" class="role-nav-btn" role="tab" aria-selected="false" title="Merchant Studio & Packing Station">
+              <span aria-hidden="true">🏬</span> Merchant Studio
+              <span id="merchantNavBadge" class="nav-count-badge">2</span>
+            </button>
+            <button id="navRoleDriver" class="role-nav-btn" role="tab" aria-selected="false" title="Delivery Agent Navigation & Routing">
+              <span aria-hidden="true">🚚</span> Driver Maps
+              <span id="driverNavBadge" class="nav-count-badge">1</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Header Actions -->
+        <div class="header-actions">
+          <button id="openGuidedTourBtn" class="btn btn-outline btn-sm" title="Explore how the 3 portals communicate in real-time">
+            <span aria-hidden="true">💡</span> Guided Demo
+          </button>
+          <button id="resetDatabaseBtn" class="btn btn-outline btn-sm" title="Reset test data to fresh state">
+            <span aria-hidden="true">🔄</span> Reset DB
+          </button>
+          <button id="headerManifestBtn" class="btn btn-secondary btn-sm" title="View printable driver delivery manifest">
+            <span aria-hidden="true">📋</span> Manifest
+          </button>
+          <button id="themeToggleBtn" class="btn btn-outline btn-icon" title="Toggle Light / Dark Mode" aria-label="Toggle Theme">
+            ☀️
+          </button>
+          <button id="exportGoogleMapsBtn" class="btn btn-primary btn-sm" title="Open navigation in Google Maps">
+            <span aria-hidden="true">🗺️</span> Google Maps
+          </button>
+        </div>
+      </header>
+
+      <!-- Live Ecosystem Sync Ticker Bar -->
+      <div class="ecosystem-sync-bar" id="ecosystemSyncBar">
+        <div class="sync-status-indicator">
+          <span class="sync-pulse-indicator" aria-hidden="true"></span>
+          <span>Live Sync Engine Active</span>
+        </div>
+        <div class="sync-ticker-text" id="ecosystemLiveMessage">
+          <span>⚡</span> Real-time reactive connection across Customer Shop, Merchant Studio, and Driver Maps.
+        </div>
+        <div class="sync-demo-flow-actions">
+          <span style="color: var(--text-muted); font-size: 0.72rem;">Try Workflow:</span>
+          <button class="sync-step-chip" id="chipStepCustomer">1. Order (Customer)</button>
+          <button class="sync-step-chip" id="chipStepMerchant">2. Pack (Merchant)</button>
+          <button class="sync-step-chip" id="chipStepDriver">3. Deliver (Driver)</button>
+        </div>
+      </div>
+
+      <!-- App Views Container (3-Way Platform) -->
+      <div id="viewsContainer" class="views-wrapper">
+        <!-- VIEW 1: Customer Storefront & Grocery Ordering -->
+        <div id="customerView" class="app-view-container animate-fade-in" role="tabpanel" aria-labelledby="navRoleCustomer">
+          <!-- Populated by CustomerPortal component -->
+        </div>
+
+        <!-- VIEW 2: Merchant Studio & Inventory Database Management -->
+        <div id="merchantView" class="app-view-container animate-fade-in" role="tabpanel" aria-labelledby="navRoleMerchant" style="display: none;">
+          <!-- Populated by MerchantPortal component -->
+        </div>
+
+        <!-- VIEW 3: Delivery Driver Maps & Navigation Engine -->
+        <main id="driverView" class="app-view-container driver-app-view main-content" role="tabpanel" aria-labelledby="navRoleDriver" style="display: none;">
+          <!-- Left Sidebar Controls -->
+          <aside class="sidebar" aria-label="Delivery controls and itinerary">
+            <!-- Sidebar Navigation Tabs -->
+            <nav class="sidebar-tabs" role="tablist" aria-label="Route Planning Tabs">
+              <button id="tabBtnRoute" class="tab-btn active" role="tab" aria-selected="true" aria-controls="paneRoute">
+                <span>🚚 Stops & Route</span>
+                <span id="stopsCountBadge" class="tab-badge">0</span>
+              </button>
+              <button id="tabBtnDirections" class="tab-btn" role="tab" aria-selected="false" aria-controls="paneDirections">
+                <span>Turn-by-Turn</span>
+              </button>
+              <button id="tabBtnAnalytics" class="tab-btn" role="tab" aria-selected="false" aria-controls="paneAnalytics">
+                <span>Fleet & Manifest</span>
+              </button>
+            </nav>
+
+            <!-- Tab Content Panes -->
+            <div class="tab-content">
+              <!-- TAB 1: Route & Stops Planning -->
+              <div id="paneRoute" class="tab-pane active" role="tabpanel" aria-labelledby="tabBtnRoute">
+                <!-- Ready for Driver Pickup Section (Merchant Dispatch Integration) -->
+                <section class="card-section driver-dispatch-box" id="driverDispatchSection">
+                  <div class="dispatch-header">
+                    <span class="dispatch-title">
+                      <span class="live-dot" aria-hidden="true"></span>
+                      Ready for Pickup (<span id="dispatchQueueCount">1</span>)
+                    </span>
+                    <button id="btnLoadAllDispatchOrders" class="btn btn-primary btn-sm" style="font-size: 0.72rem; padding: 0.2rem 0.5rem;">
+                      ⚡ Load to Route
+                    </button>
+                  </div>
+                  <div id="driverDispatchListContainer">
+                    <!-- Populated dynamically with orders marked 'ready_for_dispatch' in DB -->
+                  </div>
+                </section>
+              <!-- Preset Delivery Scenarios Section -->
+              <section class="card-section">
+                <div class="section-header">
+                  <h2 class="section-title">
+                    <span aria-hidden="true">🗺️</span> OP Neighborhood Scenarios
+                  </h2>
+                </div>
+                <div class="quick-chips-row">
+                  <button class="quick-chip scenario-chip" data-scenario="central_downtown_op">🏙️ Central OP (5 Stops)</button>
+                  <button class="quick-chip scenario-chip" data-scenario="south_blue_valley">🌾 South OP (5 Stops)</button>
+                  <button class="quick-chip scenario-chip" data-scenario="college_prairiefire">🏢 College Blvd (5 Stops)</button>
+                  <button class="quick-chip scenario-chip" data-scenario="custom_empty">➕ Custom Route</button>
+                </div>
+              </section>
+
+              <!-- Store Depot Section -->
+              <section class="card-section">
+                <div class="section-header">
+                  <h2 class="section-title">
+                    <span aria-hidden="true">🏬</span> Store Depot (Origin)
+                  </h2>
+                </div>
+                <div class="store-picker-row">
+                  <label for="storeSelect" class="visually-hidden">Select Store Depot</label>
+                  <select id="storeSelect" class="form-select" aria-label="Select Store Depot">
+                    <!-- Options populated dynamically from overlandParkData.js -->
+                  </select>
+                  <div id="storeAddressHint" class="store-address-hint">
+                    📍 <span>Loading store address...</span>
+                  </div>
+                </div>
+
+                <!-- Mode: Round Trip vs One-Way -->
+                <div class="route-mode-toggle" role="radiogroup" aria-label="Route Return Mode">
+                  <button id="modeRoundTrip" class="toggle-option-btn active" role="radio" aria-checked="true">
+                    🔄 Round Trip (Return to Hub)
+                  </button>
+                  <button id="modeOneWay" class="toggle-option-btn" role="radio" aria-checked="false">
+                    🏁 Drop-off Finish (Last Stop)
+                  </button>
+                </div>
+              </section>
+
+              <!-- Address Quick Search & Autocomplete -->
+              <section class="card-section">
+                <div class="section-header">
+                  <h2 class="section-title">
+                    <span aria-hidden="true">🔍</span> Add Overland Park Address
+                  </h2>
+                </div>
+                <div class="address-input-wrap">
+                  <div class="search-input-field">
+                    <input
+                      type="text"
+                      id="addressSearchInput"
+                      class="form-input"
+                      placeholder="Type street, e.g. 8001 Conser St or 95th & Antioch..."
+                      autocomplete="off"
+                      aria-label="Search address in Overland Park"
+                    />
+                    <div id="searchDropdown" class="search-dropdown-results" role="listbox"></div>
+                  </div>
+                  <button id="quickAddBtn" class="btn btn-secondary btn-sm" title="Add address to stop list">
+                    Add
+                  </button>
+                </div>
+
+                <!-- Quick Neighborhood Chips -->
+                <div class="quick-chips-row">
+                  <button class="quick-chip" data-addr="8001 Conser St, Overland Park, KS">+ Downtown OP</button>
+                  <button class="quick-chip" data-addr="7941 Santa Fe Dr, Overland Park, KS">+ Santa Fe Dr</button>
+                  <button class="quick-chip" data-addr="9320 Antioch Rd, Overland Park, KS">+ 95th & Antioch</button>
+                  <button class="quick-chip" data-addr="13110 Metcalf Ave, Overland Park, KS">+ Corbin Park OP</button>
+                  <button class="quick-chip" data-addr="11902 W 119th St, Overland Park, KS">+ 119th & Quivira</button>
+                </div>
+
+                <div id="clickModeBanner" class="click-mode-banner" style="display: none;">
+                  <span>📍 <strong>Pin Dropper Active:</strong> Tap any street in Overland Park to drop a house pin!</span>
+                  <button id="cancelClickModeBtn" class="btn btn-outline btn-sm">Cancel</button>
+                </div>
+              </section>
+
+              <!-- Stop List Section -->
+              <section class="card-section">
+                <div class="section-header">
+                  <h2 class="section-title">
+                    <span aria-hidden="true">📦</span> Delivery Stops (<span id="stopCountDisplay">0</span>)
+                  </h2>
+                  <button id="clearAllStopsBtn" class="btn btn-outline btn-sm" title="Clear all delivery stops">
+                    Clear All
+                  </button>
+                </div>
+
+                <div id="stopsListContainer" class="stop-list-container" aria-live="polite">
+                  <!-- Dynamically rendered stop cards -->
+                </div>
+              </section>
+
+              <!-- Route Metrics & Savings -->
+              <section class="card-section">
+                <div class="section-header">
+                  <h2 class="section-title">
+                    <span aria-hidden="true">📊</span> Route Performance
+                  </h2>
+                </div>
+
+                <div class="metrics-grid">
+                  <div class="metric-card">
+                    <span class="metric-label">Total Distance</span>
+                    <span id="metricDistance" class="metric-val highlight">0.0 mi</span>
+                  </div>
+                  <div class="metric-card">
+                    <span class="metric-label">Est. Drive Time</span>
+                    <span id="metricDuration" class="metric-val">0 min</span>
+                  </div>
+                  <div class="metric-card">
+                    <span class="metric-label">Fuel Est. (KS Gas)</span>
+                    <span id="metricFuelCost" class="metric-val">$0.00</span>
+                  </div>
+                  <div class="metric-card">
+                    <span class="metric-label">Grocery Orders</span>
+                    <span id="metricBagsCount" class="metric-val">0 Bags</span>
+                  </div>
+                </div>
+
+                <div id="savingsCallout" class="savings-callout" style="display: none;">
+                  <div class="savings-icon" aria-hidden="true">⚡</div>
+                  <div class="savings-text">
+                    <strong>Route Optimized:</strong> Saved <span id="savingsMiles">0.0</span> mi and <span id="savingsMins">0</span> mins vs unorganized delivery order!
+                  </div>
+                </div>
+
+                <div class="route-actions-row">
+                  <button id="optimizeRouteBtn" class="btn btn-primary" style="flex: 1;">
+                    <span aria-hidden="true">⚡</span> Optimize Route Order
+                  </button>
+                  <button id="simulateRunBtn" class="btn btn-secondary" style="flex: 1;">
+                    <span aria-hidden="true">🚚</span> Simulate Delivery
+                  </button>
+                </div>
+              </section>
+            </div>
+
+            <!-- TAB 2: Turn-by-Turn Directions -->
+            <div id="paneDirections" class="tab-pane" role="tabpanel" aria-labelledby="tabBtnDirections">
+              <section class="card-section">
+                <div class="section-header">
+                  <h2 class="section-title">
+                    <span aria-hidden="true">🧭</span> Overland Park Driver Itinerary
+                  </h2>
+                  <button id="printItineraryBtn" class="btn btn-outline btn-sm">Print</button>
+                </div>
+                <div id="directionsList" class="directions-list">
+                  <p class="text-muted" style="font-size: 0.85rem; padding: 1rem 0;">
+                    Click <strong>"Optimize Route Order"</strong> to generate step-by-step street directions.
+                  </p>
+                </div>
+              </section>
+            </div>
+
+            <!-- TAB 3: Fleet Analytics & Driver Manifest -->
+            <div id="paneAnalytics" class="tab-pane" role="tabpanel" aria-labelledby="tabBtnAnalytics">
+              <section class="card-section">
+                <div class="section-header">
+                  <h2 class="section-title">
+                    <span aria-hidden="true">📋</span> Driver Dispatch Manifest
+                  </h2>
+                  <button id="openManifestBtn" class="btn btn-primary btn-sm">
+                    Print Manifest
+                  </button>
+                </div>
+                <p style="font-size: 0.78rem; color: var(--text-secondary);">
+                  Ready for physical driver clipboards and dispatch verification with customer notes, bag counts, and cold-chain flags.
+                </p>
+                <table class="fleet-stats-table">
+                  <tbody>
+                    <tr>
+                      <td>Origin Hub:</td>
+                      <td id="statHubName">-</td>
+                    </tr>
+                    <tr>
+                      <td>Stop Count:</td>
+                      <td id="statStopsCount">0 Customers</td>
+                    </tr>
+                    <tr>
+                      <td>Total Grocery Bags:</td>
+                      <td id="statTotalBags">0 Bags</td>
+                    </tr>
+                    <tr>
+                      <td>Total Route Mileage:</td>
+                      <td id="statTotalMiles">0.0 mi</td>
+                    </tr>
+                    <tr>
+                      <td>Est. Driving Time:</td>
+                      <td id="statDriveTime">0 min</td>
+                    </tr>
+                    <tr>
+                      <td>Est. Doorstep Service Time:</td>
+                      <td id="statDropoffTime">0 min</td>
+                    </tr>
+                    <tr>
+                      <td>Estimated CO₂ Footprint:</td>
+                      <td id="statCo2">0.0 lbs CO₂</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Map Viewport -->
+        <section class="map-viewport-wrapper" aria-label="Interactive Map of Overland Park">
+          <div id="map"></div>
+
+          <!-- Floating Map HUD Overlays -->
+          <div class="map-floating-hud">
+            <!-- Left Panel HUD: Live Simulation Tracker & Toast -->
+            <div class="hud-left-panel">
+              <div id="simHudCard" class="sim-hud-card" style="display: none;">
+                <div class="sim-hud-status">
+                  <span aria-hidden="true">🚚</span>
+                  <span id="simHudText">Departing Depot...</span>
+                </div>
+                <div class="sim-progress-wrap" title="Simulation Progress">
+                  <div id="simProgressBar" class="sim-progress-bar"></div>
+                </div>
+                <div class="sim-controls-group">
+                  <button id="simPlayPauseBtn" class="btn btn-outline btn-sm" title="Play or Pause Simulation">
+                    ⏸️ Pause
+                  </button>
+                  <label for="simSpeedSelect" class="visually-hidden">Speed</label>
+                  <select id="simSpeedSelect" class="hud-speed-select" aria-label="Simulation Speed">
+                    <option value="1">1x</option>
+                    <option value="2" selected>2x</option>
+                    <option value="5">5x</option>
+                    <option value="10">10x</option>
+                  </select>
+                  <button id="simResetBtn" class="btn btn-outline btn-sm" title="Stop & Reset">
+                    ⏹️
+                  </button>
+                </div>
+              </div>
+
+              <!-- Live Toast Notification -->
+              <div id="liveToastBar" class="live-toast-bar">
+                <span id="toastIcon">📦</span>
+                <span id="toastMessage">Delivery update message</span>
+              </div>
+            </div>
+
+            <!-- Right Panel HUD: Map Quick Controls -->
+            <div class="hud-right-panel">
+              <button id="recenterMapBtn" class="map-btn-pill" title="Reset view to Overland Park center">
+                <span>🎯</span> Recenter OP
+              </button>
+              <button id="fitRouteBtn" class="map-btn-pill" title="Fit all route stops in viewport">
+                <span>📐</span> Fit Route
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div> <!-- Close viewsContainer -->
+
+      <!-- Modal: Add Custom Stop -->
+      <div id="addStopModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="addStopModalTitle">
+        <div class="modal-dialog">
+          <div class="modal-header">
+            <h3 id="addStopModalTitle" class="modal-title">Add Delivery Stop in Overland Park</h3>
+            <button id="closeAddModalBtn" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+          </div>
+          <form id="addStopForm">
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="modalCustomerName" class="form-label">Customer Name</label>
+                <input type="text" id="modalCustomerName" class="form-input" placeholder="e.g. Sarah Jenkins" required />
+              </div>
+              <div class="form-group">
+                <label for="modalAddress" class="form-label">Street Address in Overland Park, KS</label>
+                <input type="text" id="modalAddress" class="form-input" placeholder="e.g. 8400 W 95th St, Overland Park, KS" required />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="modalBags" class="form-label">Bag Count</label>
+                  <input type="number" id="modalBags" class="form-input" min="1" max="25" value="3" required />
+                </div>
+                <div class="form-group">
+                  <label for="modalPhone" class="form-label">Phone Number (Optional)</label>
+                  <input type="tel" id="modalPhone" class="form-input" placeholder="(913) 555-0199" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="modalItems" class="form-label">Grocery Items (comma separated)</label>
+                <input type="text" id="modalItems" class="form-input" placeholder="Organic Strawberries, Whole Milk, Sourdough" />
+              </div>
+              <div class="form-group">
+                <label for="modalNotes" class="form-label">Driver Notes / Door Instructions</label>
+                <input type="text" id="modalNotes" class="form-input" placeholder="e.g. Ring doorbell, leave on front porch cooler" />
+              </div>
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="modalPerishable" checked />
+                  <span>Contains Perishable / Chilled Cold-Chain Items ❄️</span>
+                </label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" id="cancelAddModalBtn" class="btn btn-secondary">Cancel</button>
+              <button type="submit" class="btn btn-primary">Add to Route</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Modal: Printable Driver Manifest -->
+      <div id="manifestModal" class="modal-backdrop manifest-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="manifestModalTitle">
+        <div class="modal-dialog manifest-modal-dialog">
+          <div class="modal-header">
+            <h3 id="manifestModalTitle" class="modal-title">🚚 Driver Delivery Manifest • Overland Park, KS</h3>
+            <button id="closeManifestModalBtn" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+          </div>
+          <div class="modal-body" id="manifestPrintArea">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.75rem;">
+              <div>
+                <h2 style="font-size: 1.2rem; font-weight: 800;">FreshRoute OP Grocery Dispatch</h2>
+                <p style="font-size: 0.8rem; color: var(--text-muted);" id="manifestDateText">Date: October 12, 2026</p>
+              </div>
+              <div style="text-align: right;">
+                <p style="font-size: 0.85rem; font-weight: 700;" id="manifestHubText">Hub: Whole Foods Market</p>
+                <p style="font-size: 0.75rem; color: var(--text-muted);" id="manifestSummaryStats">5 Stops • 18 Bags</p>
+              </div>
+            </div>
+
+            <table class="manifest-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;">#</th>
+                  <th>Customer</th>
+                  <th>Address</th>
+                  <th>Bags</th>
+                  <th>Special Items / Notes</th>
+                  <th style="width: 70px;">Delivered</th>
+                </tr>
+              </thead>
+              <tbody id="manifestTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <button id="doPrintManifestBtn" class="btn btn-primary">
+              🖨️ Print Manifest
+            </button>
+            <button id="dismissManifestModalBtn" class="btn btn-secondary">
+              Close
+            </button>
+          </div>
+        </div>
+      <!-- Modal: Guided Tour & Interactive Ecosystem Demo -->
+      <div id="guidedTourModal" class="modal-overlay">
+        <div class="modal-card tour-modal-card">
+          <div class="modal-header">
+            <div>
+              <h3 class="modal-title">FreshRoute Overland Park • 3-Sided Ecosystem</h3>
+              <p class="modal-subtitle">One unified platform connecting Customers, Merchants, and Delivery Agents</p>
+            </div>
+            <button id="closeTourModalBtn" class="btn btn-icon btn-sm">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="tour-steps-grid">
+              <div class="tour-step-card">
+                <div class="tour-step-icon">🛒</div>
+                <div class="tour-step-content">
+                  <h4>1. Customer Shop (Ordering)</h4>
+                  <p>Customers select nearby Overland Park stores (Whole Foods, Hy-Vee, Trader Joe's, Sprouts, Price Chopper, Costco), browse live inventory & prices, build a cart, and place orders with real-time tracking.</p>
+                  <button type="button" class="btn btn-sm btn-outline" id="tourGoCustomerBtn" style="margin-top: 0.5rem;">Launch Customer Shop →</button>
+                </div>
+              </div>
+              <div class="tour-step-card">
+                <div class="tour-step-icon">🏬</div>
+                <div class="tour-step-content">
+                  <h4>2. Merchant Studio (Fulfillment & Catalog)</h4>
+                  <p>Merchants login to their store depot, review live incoming orders ("who ordered what"), check items off an itemized packing checklist, verify thermal bags for perishables, and request driver pickup. Merchants also edit product prices & inventory in real time.</p>
+                  <button type="button" class="btn btn-sm btn-outline" id="tourGoMerchantBtn" style="margin-top: 0.5rem;">Launch Merchant Studio →</button>
+                </div>
+              </div>
+              <div class="tour-step-card">
+                <div class="tour-step-icon">🚚</div>
+                <div class="tour-step-content">
+                  <h4>3. Driver Maps (Navigation & Optimization)</h4>
+                  <p>Delivery agents pick up packed orders from Overland Park merchants, solve optimal multi-stop routes using 2-opt TSP solving, follow turn-by-turn navigation, and complete doorstep deliveries with live GPS simulation.</p>
+                  <button type="button" class="btn btn-sm btn-outline" id="tourGoDriverBtn" style="margin-top: 0.5rem;">Launch Driver Maps →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+            <button type="button" id="btnRunAutomatedDemo" class="btn btn-accent">
+              <span>⚡ Run 1-Click Interactive Demo</span>
+            </button>
+            <button type="button" id="dismissTourModalBtn" class="btn btn-secondary">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Script Module -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
