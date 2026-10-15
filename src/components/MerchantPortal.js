@@ -270,8 +270,21 @@ export class MerchantPortal {
   // --- RENDERING ---
 
   render() {
-    const store = db.getStore(this.selectedStoreId);
     const allStores = db.getStores();
+    // Fall back to the first available store if the selected id is missing
+    // (e.g. cached data from an older store list). Never crash on a stale id.
+    let store = db.getStore(this.selectedStoreId);
+    if (!store && allStores.length > 0) {
+      this.selectedStoreId = allStores[0].id;
+      store = allStores[0];
+    }
+    if (!store) {
+      this.container.innerHTML = `
+        <div class="merchant-portal-container animate-fade-in">
+          <p style="padding: 2rem; text-align: center; color: var(--text-muted);">No stores available.</p>
+        </div>`;
+      return;
+    }
 
     this.container.innerHTML = `
       <div class="merchant-portal-container animate-fade-in">
