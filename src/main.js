@@ -1161,13 +1161,13 @@ async function runAutomatedDemo() {
 
   // Step 1: Customer Shop
   switchView('customer');
-  showToast('Step 1: Customer placing order from Whole Foods Overland Park...', '🛒');
+  showToast('Step 1: Customer placing order from Royal Spices...', '🛒');
   await new Promise(r => setTimeout(r, 1500));
 
   const demoOrder = db.createOrder({
-    storeId: 'whole_foods',
+    storeId: 'royal_spices',
     customer: {
-      name: 'Michael & Jenny Scott',
+      name: 'Aarav & Diya Mehta',
       phone: '(913) 555-0899',
       address: '8001 Conser St, Overland Park, KS 66204',
       lat: 38.9832,
@@ -1175,14 +1175,14 @@ async function runAutomatedDemo() {
       notes: 'Porch cooler box beside front door.'
     },
     items: [
-      { id: 'wf-prod-1', name: 'Organic Honeycrisp Apples', price: 3.99, quantity: 2, isPerishable: false },
-      { id: 'wf-dai-1', name: 'Whole Grass-Fed Milk', price: 4.89, quantity: 1, isPerishable: true },
-      { id: 'wf-bak-1', name: 'Artisan Country Sourdough Loaf', price: 5.99, quantity: 1, isPerishable: false }
+      { id: 'rs-atta-1', name: 'Aashirvaad Whole Wheat Atta', price: 18.99, quantity: 1, isPerishable: false },
+      { id: 'rs-paneer-1', name: 'Fresh Malai Paneer', price: 5.99, quantity: 1, isPerishable: true },
+      { id: 'rs-masala-1', name: 'MDH Garam Masala', price: 3.49, quantity: 2, isPerishable: false }
     ],
-    subtotal: 18.86,
+    subtotal: 31.96,
     deliveryFee: 0,
     tip: 4.00,
-    total: 22.86
+    total: 35.96
   });
 
   showToast(`Order ${demoOrder.orderNumber} placed by customer!`, '🎉');

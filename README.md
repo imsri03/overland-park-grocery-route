@@ -1,6 +1,11 @@
-# 🛒 FreshRoute OP — Overland Park Grocery Delivery Route Optimizer
+# 🛒 FreshRoute OP — Indian Grocery Delivery, Overland Park
 
-A high-performance, visually interactive grocery delivery route optimization web application built specifically for **Overland Park, Kansas, USA**.
+A minimal, light-themed grocery delivery app for **Indian grocery stores around Overland Park, Kansas, USA** — with batched same-day and next-day delivery.
+
+## 🚚 Delivery Batches
+
+- **Same-day batch:** order 7:00 AM – 12:00 PM → delivered same day 4:00 – 9:00 PM
+- **Next-day batch:** order 4:00 PM – 9:00 PM → delivered next morning 8:00 AM – 12:00 PM
 
 ## 🌟 Features Overview
 

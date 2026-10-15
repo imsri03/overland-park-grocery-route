@@ -12,57 +12,57 @@ export const OVERLAND_PARK_BOUNDS = [
 // Major Indian Grocery Stores in Overland Park, KS
 export const GROCERY_STORES = [
   {
-    id: 'ambica_foods',
-    name: 'Ambica Foods (95th & Antioch)',
-    brand: 'Ambica Foods',
+    id: 'royal_spices',
+    name: 'Royal Spices Indian Grocery',
+    brand: 'Royal Spices',
     address: '8617 W 95th St, Overland Park, KS 66212',
     lat: 38.9565,
     lng: -94.6852,
-    icon: 'ambica',
+    icon: 'royal',
     color: '#2d6a4f',
     description: 'Central Overland Park Indian hub with fresh desi produce, atta, dhal, and fresh snacks'
   },
   {
-    id: 'bhavani_cash_carry',
-    name: 'Bhavani Cash & Carry (95th St)',
-    brand: 'Bhavani Cash & Carry',
+    id: 'reliance_mart',
+    name: 'Reliance Mart',
+    brand: 'Reliance Mart',
     address: '8731 W 95th St, Overland Park, KS 66212',
     lat: 38.9566,
     lng: -94.6870,
-    icon: 'bhavani',
+    icon: 'reliance',
     color: '#3d5a45',
     description: 'Renowned cash & carry depot for bulk basmati rice, lentils, spices, and South Indian staples'
   },
   {
-    id: 'spices_indian_grocery',
-    name: 'Spices Indian Grocery (Metcalf Ave)',
-    brand: 'Spices Indian Grocery',
+    id: 'kc_indian_mart',
+    name: 'KC Indian Mart',
+    brand: 'KC Indian Mart',
     address: '11005 Metcalf Ave, Overland Park, KS 66210',
     lat: 38.9298,
     lng: -94.6685,
-    icon: 'spices',
+    icon: 'kc',
     color: '#4a6b58',
     description: 'Mid-town hub with fresh batter, authentic masalas, frozen naans, and hot snacks'
   },
   {
-    id: 'patel_brothers',
-    name: 'Patel Brothers (95th St Corridor)',
-    brand: 'Patel Brothers',
+    id: 'taj_groceries',
+    name: 'Taj Groceries',
+    brand: 'Taj Groceries',
     address: '8615 W 95th St, Overland Park, KS 66212',
     lat: 38.9564,
     lng: -94.6845,
-    icon: 'patel',
+    icon: 'taj',
     color: '#36533f',
     description: 'Everyday household brands, desi ghee, paneer, and premium whole wheat flours'
   },
   {
-    id: 'apna_bazar',
-    name: 'Apna Bazar (119th & Quivira)',
-    brand: 'Apna Bazar',
+    id: 'tt_asian_grocery',
+    name: 'TT Asian Grocery Store',
+    brand: 'TT Asian Grocery',
     address: '11902 W 119th St, Overland Park, KS 66213',
     lat: 38.9130,
     lng: -94.7240,
-    icon: 'apna',
+    icon: 'tt',
     color: '#435e49',
     description: 'Southwest corridor hub for Indian sweets, festival specials, and bulk pantry goods'
   }
@@ -73,7 +73,7 @@ export const PRESET_SCENARIOS = [
   {
     id: 'morning_batch_loop',
     name: '🌅 Morning Batch Run (7:00 - 10:00 AM) • 5 Stops',
-    storeId: 'ambica_foods',
+    storeId: 'royal_spices',
     badge: 'Morning Run',
     description: 'Overnight orders placed between 4 PM - 9 PM delivered first thing in the morning across Central & Downtown OP.',
     stops: [
@@ -152,7 +152,7 @@ export const PRESET_SCENARIOS = [
   {
     id: 'evening_batch_loop',
     name: '🌆 Evening Batch Run (6:00 - 9:00 PM) • 5 Stops',
-    storeId: 'bhavani_cash_carry',
+    storeId: 'reliance_mart',
     badge: 'Evening Run',
     description: 'Daytime orders placed between 9 AM - 12 PM prepared in the afternoon and delivered 6 PM - 9 PM across South OP.',
     stops: [

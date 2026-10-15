@@ -13,7 +13,7 @@ export class MerchantPortal {
     this.onViewInDriver = options.onViewInDriver || null;
     this.showToast = options.showToast || console.log;
 
-    this.selectedStoreId = 'whole_foods';
+    this.selectedStoreId = 'royal_spices';
     this.activeTab = 'orders'; // 'orders' | 'inventory'
     this.orderStatusFilter = 'all'; // 'all' | 'received' | 'preparing' | 'ready_for_dispatch' | 'completed'
     this.inventoryCategoryFilter = 'all';
@@ -519,6 +519,7 @@ export class MerchantPortal {
           <div class="order-meta-info">
             <span class="order-id-tag">${order.orderNumber}</span>
             <span class="order-time-text">⏱️ ${new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            ${order.deliverySlot ? `<span class="order-slot-tag" title="Delivery batch">🛵 ${order.deliverySlot.deliveryLabel}</span>` : ''}
           </div>
           <span class="order-status-badge ${statusInfo.class}">${statusInfo.label}</span>
         </div>
@@ -792,12 +793,11 @@ export class MerchantPortal {
 
   getStoreEmoji(storeId) {
     switch (storeId) {
-      case 'whole_foods': return '🥦';
-      case 'trader_joes': return '🌺';
-      case 'hy_vee': return '🥩';
-      case 'sprouts_corbin': return '🌱';
-      case 'price_chopper': return '🛒';
-      case 'costco_op': return '📦';
+      case 'royal_spices': return '🌾';
+      case 'reliance_mart': return '🍚';
+      case 'kc_indian_mart': return '🌶️';
+      case 'taj_groceries': return '🫓';
+      case 'tt_asian_grocery': return '🍬';
       default: return '🏬';
     }
   }

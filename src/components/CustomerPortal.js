@@ -6,6 +6,7 @@
 
 import { db } from '../services/db.js';
 import { PRESET_CUSTOMER_ADDRESSES } from '../data/inventoryData.js';
+import { getDeliverySlot, formatCountdown } from '../services/deliverySlots.js';
 import confetti from 'canvas-confetti';
 
 export class CustomerPortal {
@@ -297,10 +298,15 @@ export class CustomerPortal {
     const subtotalEl = this.container.querySelector('#checkoutModalSubtotal');
     const totalEl = this.container.querySelector('#checkoutModalTotal');
     const storeNameEl = this.container.querySelector('#checkoutModalStoreName');
+    const slotEl = this.container.querySelector('#checkoutModalSlot');
 
     if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
     if (totalEl) totalEl.textContent = `$${total.toFixed(2)}`;
     if (storeNameEl && this.selectedStore) storeNameEl.textContent = this.selectedStore.name;
+    if (slotEl) {
+      const slot = getDeliverySlot(new Date());
+      slotEl.textContent = `${slot.deliveryLabel} (${slot.batchLabel})`;
+    }
 
     // Default to first preset if empty
     const nameInput = this.container.querySelector('#checkoutCustomerName');
@@ -394,7 +400,7 @@ export class CustomerPortal {
       // Confetti fallback
     }
 
-    this.showToast(`Order ${newOrder.orderNumber} placed successfully!`, '🎉');
+    this.showToast(`Order ${newOrder.orderNumber} placed! Arrives ${newOrder.deliverySlot.deliveryLabel}.`, '🎉');
 
     // Clear cart
     this.cart = [];
@@ -434,11 +440,13 @@ export class CustomerPortal {
     const statusPill = this.container.querySelector('#trackStatusPill');
     const timelineContainer = this.container.querySelector('#trackTimelineSteps');
     const itemsListContainer = this.container.querySelector('#trackItemsSummaryList');
+    const slotEl = this.container.querySelector('#trackDeliverySlot');
 
     if (numberEl) numberEl.textContent = order.orderNumber;
     if (storeEl) storeEl.textContent = order.storeName;
     if (addrEl) addrEl.textContent = order.customer.address;
     if (totalEl) totalEl.textContent = `$${order.total.toFixed(2)}`;
+    if (slotEl) slotEl.textContent = order.deliverySlot ? order.deliverySlot.deliveryLabel : '–';
 
     // Status mapping & step indicators
     const statusMap = {
@@ -510,22 +518,35 @@ export class CustomerPortal {
         <!-- Hero Header -->
         <div class="customer-hero">
           <div class="hero-badge">
-            <span class="live-dot"></span> Overland Park Local Grocery Delivery
+            <span class="live-dot"></span> Overland Park Indian Grocery Delivery
           </div>
-          <h2 class="hero-title">Select a Store Near You in Overland Park</h2>
+          <h2 class="hero-title">Indian Groceries, Delivered in Batches</h2>
           <p class="hero-subtitle">
-            Order fresh produce, bakery, meats, and pantry essentials from top Overland Park grocers.
-            Delivered directly to your door with real-time temperature tracking.
+            Order atta, basmati, masalas, paneer &amp; fresh snacks from beloved Indian stores
+            around Overland Park. Two delivery batches daily — no rush fees, no surge.
           </p>
+
+          <!-- Live delivery batch banner -->
+          <div class="slot-banner" id="slotBanner" role="status" aria-live="polite">
+            <div class="slot-banner-icon" aria-hidden="true">🛵</div>
+            <div class="slot-banner-text">
+              <strong id="slotBannerTitle">Checking delivery batches…</strong>
+              <span id="slotBannerSub"></span>
+            </div>
+            <div class="slot-countdown-wrap">
+              <span class="slot-countdown" id="slotCountdown">–</span>
+              <span class="slot-countdown-label">left to order</span>
+            </div>
+          </div>
           
           <div class="hero-stats-row">
             <div class="hero-stat-pill">
               <span class="stat-icon">🏬</span>
-              <span><strong>6 Local Hubs</strong> in OP & Johnson Co.</span>
+              <span><strong>5 Indian Stores</strong> across OP</span>
             </div>
             <div class="hero-stat-pill">
-              <span class="stat-icon">⚡</span>
-              <span><strong>25-35 Min</strong> Average Delivery Time</span>
+              <span class="stat-icon">🛵</span>
+              <span><strong>2 Daily Batches</strong> 4–9 PM &amp; next AM</span>
             </div>
             <div class="hero-stat-pill">
               <span class="stat-icon">❄️</span>
@@ -537,7 +558,7 @@ export class CustomerPortal {
         <!-- Stores Grid -->
         <div class="stores-section">
           <div class="stores-section-header">
-            <h3 class="section-title">Available Overland Park Store Depots</h3>
+            <h3 class="section-title">Indian Grocery Stores Near You</h3>
             <span class="stores-count-tag">${stores.length} Stores Available</span>
           </div>
 
@@ -549,6 +570,8 @@ export class CustomerPortal {
         ${this.renderCustomerModalsHtml()}
       </div>
     `;
+
+    this.startSlotTimer();
   }
 
   renderStoreCard(store) {
@@ -575,7 +598,7 @@ export class CustomerPortal {
             </div>
             <div class="store-metric-divider">•</div>
             <div class="store-metric-item">
-              <span>⏱️ ${store.estDeliveryMins}</span>
+              <span>🛵 Batches 4–9 PM &amp; next AM</span>
             </div>
             <div class="store-metric-divider">•</div>
             <div class="store-metric-item">
@@ -960,8 +983,8 @@ export class CustomerPortal {
                 <span id="checkoutModalSubtotal">$0.00</span>
               </div>
               <div class="summary-line">
-                <span>Estimated Arrival:</span>
-                <span class="text-accent">25-35 Minutes</span>
+                <span>Delivery batch:</span>
+                <span class="text-accent" id="checkoutModalSlot">–</span>
               </div>
               <div class="summary-line highlight">
                 <span>Final Total:</span>
@@ -1000,8 +1023,8 @@ export class CustomerPortal {
                 <span>📝</span> Order Received
               </div>
               <div class="tracking-est-time">
-                <span>Estimated Drop-off:</span>
-                <strong>~25 mins</strong>
+                <span>Delivery batch:</span>
+                <strong id="trackDeliverySlot">–</strong>
               </div>
             </div>
 
@@ -1055,12 +1078,11 @@ export class CustomerPortal {
 
   getStoreEmoji(storeId) {
     switch (storeId) {
-      case 'whole_foods': return '🥦';
-      case 'trader_joes': return '🌺';
-      case 'hy_vee': return '🥩';
-      case 'sprouts_corbin': return '🌱';
-      case 'price_chopper': return '🛒';
-      case 'costco_op': return '📦';
+      case 'royal_spices': return '🌾';
+      case 'reliance_mart': return '🍚';
+      case 'kc_indian_mart': return '🌶️';
+      case 'taj_groceries': return '🫓';
+      case 'tt_asian_grocery': return '🍬';
       default: return '🏬';
     }
   }
@@ -1068,6 +1090,41 @@ export class CustomerPortal {
   destroy() {
     if (this.unsubscribe) {
       this.unsubscribe();
+    }
+    this.stopSlotTimer();
+  }
+
+  // --- Live delivery batch banner ---
+  startSlotTimer() {
+    this.stopSlotTimer();
+    this.updateSlotBanner();
+    this.slotTimer = setInterval(() => this.updateSlotBanner(), 30000);
+  }
+
+  stopSlotTimer() {
+    if (this.slotTimer) {
+      clearInterval(this.slotTimer);
+      this.slotTimer = null;
+    }
+  }
+
+  updateSlotBanner() {
+    const titleEl = this.container.querySelector('#slotBannerTitle');
+    const subEl = this.container.querySelector('#slotBannerSub');
+    const countEl = this.container.querySelector('#slotCountdown');
+    if (!titleEl || !subEl || !countEl) return;
+
+    const slot = getDeliverySlot(new Date());
+    if (slot.isLive) {
+      titleEl.textContent = `Now packing: ${slot.batchLabel} — arrives ${slot.deliveryLabel}`;
+      subEl.textContent = slot.note
+        ? `${slot.note}. Order by ${slot.cutoffAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} for ${slot.deliveryLabel}.`
+        : `Order window ${slot.orderWindowLabel}.`;
+      countEl.textContent = formatCountdown(slot.cutoffAt - new Date());
+    } else {
+      titleEl.textContent = `Next batch: order ${slot.orderWindowLabel} → arrives ${slot.deliveryLabel}`;
+      subEl.textContent = 'We pack twice daily so your groceries arrive fresh, together.';
+      countEl.textContent = formatCountdown(slot.cutoffAt - new Date());
     }
   }
 }

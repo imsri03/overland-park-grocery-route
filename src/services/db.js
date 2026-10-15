@@ -5,6 +5,7 @@
  */
 
 import { STORE_CATALOGS, PRESET_CUSTOMER_ADDRESSES } from '../data/inventoryData.js';
+import { slotSnapshot } from './deliverySlots.js';
 
 const STORAGE_KEY = 'freshroute_ecosystem_db_v2';
 const BROADCAST_CHANNEL_NAME = 'freshroute_sync_bus';
@@ -55,18 +56,19 @@ class FreshRouteDatabase {
       inventoryByStore[s.id] = JSON.parse(JSON.stringify(s.inventory));
     });
 
-    // Realistic active initial orders
+    // Realistic active initial orders (Indian grocery batches)
     const now = Date.now();
     const orders = [
       {
         id: 'ord-101',
         orderNumber: '#FR-8821',
-        storeId: 'whole_foods',
-        storeName: 'Whole Foods Market (91st & Metcalf)',
-        storeAddress: '6621 W 119th St / 9101 Metcalf Ave, Overland Park, KS',
+        storeId: 'royal_spices',
+        storeName: 'Royal Spices Indian Grocery',
+        storeAddress: '8617 W 95th St, Overland Park, KS 66212',
         createdAt: new Date(now - 35 * 60 * 1000).toISOString(),
+        deliverySlot: slotSnapshot(new Date(now - 35 * 60 * 1000)),
         customer: {
-          name: 'Sarah Jenkins',
+          name: 'Priya Sharma',
           phone: '(913) 555-0142',
           address: '8001 Conser St, Overland Park, KS 66204',
           lat: 38.9832,
@@ -74,15 +76,15 @@ class FreshRouteDatabase {
           notes: 'Leave on porch near swing, gate is unlocked.'
         },
         items: [
-          { id: 'wf-prod-1', name: 'Organic Honeycrisp Apples', price: 3.99, quantity: 2, packed: true, isPerishable: false },
-          { id: 'wf-dai-1', name: 'Whole Grass-Fed Milk (Grade A)', price: 4.89, quantity: 1, packed: true, isPerishable: true },
-          { id: 'wf-bak-1', name: 'Artisan Country Sourdough Loaf', price: 5.99, quantity: 1, packed: true, isPerishable: false },
-          { id: 'wf-dai-2', name: 'Pasture-Raised Large Brown Eggs', price: 5.49, quantity: 1, packed: true, isPerishable: true }
+          { id: 'rs-atta-1', name: 'Aashirvaad Whole Wheat Atta', price: 18.99, quantity: 1, packed: true, isPerishable: false },
+          { id: 'rs-paneer-1', name: 'Fresh Malai Paneer', price: 5.99, quantity: 2, packed: true, isPerishable: true },
+          { id: 'rs-masala-1', name: 'MDH Garam Masala', price: 3.49, quantity: 1, packed: true, isPerishable: false },
+          { id: 'rs-samosa-1', name: 'Punjabi Samosa (4-pack)', price: 4.99, quantity: 1, packed: true, isPerishable: true }
         ],
-        subtotal: 24.35,
+        subtotal: 39.45,
         deliveryFee: 0.00,
-        tip: 4.50,
-        total: 28.85,
+        tip: 5.00,
+        total: 44.45,
         bagsCount: 3,
         hasPerishable: true,
         status: 'ready_for_dispatch', // Ready for driver!
@@ -96,12 +98,13 @@ class FreshRouteDatabase {
       {
         id: 'ord-102',
         orderNumber: '#FR-8822',
-        storeId: 'whole_foods',
-        storeName: 'Whole Foods Market (91st & Metcalf)',
-        storeAddress: '6621 W 119th St / 9101 Metcalf Ave, Overland Park, KS',
+        storeId: 'taj_groceries',
+        storeName: 'Taj Groceries',
+        storeAddress: '8615 W 95th St, Overland Park, KS 66212',
         createdAt: new Date(now - 18 * 60 * 1000).toISOString(),
+        deliverySlot: slotSnapshot(new Date(now - 18 * 60 * 1000)),
         customer: {
-          name: 'Marcus Vance',
+          name: 'Rahul Iyer',
           phone: '(913) 555-0189',
           address: '7941 Santa Fe Dr, Overland Park, KS 66204',
           lat: 38.9845,
@@ -109,31 +112,32 @@ class FreshRouteDatabase {
           notes: 'Ring doorbell after delivery please!'
         },
         items: [
-          { id: 'wf-bev-2', name: 'Nitro Cold Brew Coffee', price: 3.99, quantity: 2, packed: true, isPerishable: true },
-          { id: 'wf-prod-3', name: 'Organic Hass Avocados', price: 5.29, quantity: 1, packed: false, isPerishable: false },
-          { id: 'wf-dai-3', name: 'Authentic Greek Yogurt', price: 5.79, quantity: 1, packed: false, isPerishable: true }
+          { id: 'tg-rice-4', name: 'Kohinoor Extra Long Basmati', price: 29.99, quantity: 1, packed: true, isPerishable: false },
+          { id: 'tg-jalebi-1', name: 'Jalebi (Fresh)', price: 6.99, quantity: 1, packed: true, isPerishable: true },
+          { id: 'tg-chole-1', name: 'Chana Masala Spice Blend', price: 2.49, quantity: 2, packed: false, isPerishable: false }
         ],
-        subtotal: 19.06,
+        subtotal: 41.96,
         deliveryFee: 0.00,
-        tip: 3.50,
-        total: 22.56,
+        tip: 4.00,
+        total: 45.96,
         bagsCount: 2,
         hasPerishable: true,
         status: 'preparing', // Merchant is currently packing!
         timeline: [
           { status: 'received', time: new Date(now - 18 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), note: 'Order placed by customer via FreshRoute Shop' },
-          { status: 'preparing', time: new Date(now - 10 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), note: 'Whole Foods merchant is picking fresh items' }
+          { status: 'preparing', time: new Date(now - 10 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), note: 'Taj Groceries merchant is picking fresh items' }
         ]
       },
       {
         id: 'ord-103',
         orderNumber: '#FR-8823',
-        storeId: 'hy_vee',
-        storeName: 'Hy-Vee Overland Park (95th & Antioch)',
-        storeAddress: '8959 W 95th St, Overland Park, KS',
+        storeId: 'kc_indian_mart',
+        storeName: 'KC Indian Mart',
+        storeAddress: '11005 Metcalf Ave, Overland Park, KS 66210',
         createdAt: new Date(now - 8 * 60 * 1000).toISOString(),
+        deliverySlot: slotSnapshot(new Date(now - 8 * 60 * 1000)),
         customer: {
-          name: 'Dr. Emily Chen',
+          name: 'Ananya Rao',
           phone: '(913) 555-0231',
           address: '8400 W 91st Terrace, Overland Park, KS 66212',
           lat: 38.9642,
@@ -141,15 +145,15 @@ class FreshRouteDatabase {
           notes: 'Side garage entrance, gate is unlocked.'
         },
         items: [
-          { id: 'hv-meat-1', name: 'Choice Angus New York Strip Steak', price: 13.99, quantity: 2, packed: false, isPerishable: true },
-          { id: 'hv-bev-1', name: 'Boulevard Tank 7 Farmhouse Ale (6-pk)', price: 11.99, quantity: 1, packed: false, isPerishable: false }
+          { id: 'kc-paratha-3', name: 'Frozen Aloo Paratha', price: 6.49, quantity: 2, packed: false, isPerishable: false },
+          { id: 'kc-masala-1', name: 'Everest Chicken Masala', price: 2.99, quantity: 1, packed: false, isPerishable: false }
         ],
-        subtotal: 39.97,
+        subtotal: 15.97,
         deliveryFee: 0.00,
-        tip: 6.00,
-        total: 45.97,
-        bagsCount: 2,
-        hasPerishable: true,
+        tip: 3.00,
+        total: 18.97,
+        bagsCount: 1,
+        hasPerishable: false,
         status: 'received', // New order received!
         timeline: [
           { status: 'received', time: new Date(now - 8 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), note: 'Order placed by customer via FreshRoute Shop' }
@@ -296,6 +300,7 @@ class FreshRouteDatabase {
       storeName: store ? store.name : 'Overland Park Grocery',
       storeAddress: store ? store.address : 'Overland Park, KS',
       createdAt: now.toISOString(),
+      deliverySlot: slotSnapshot(now),
       customer: {
         name: orderData.customer.name,
         phone: orderData.customer.phone || '(913) 555-0100',
